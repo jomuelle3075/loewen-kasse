@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>LöwenKasse</title>
+
+<!-- PWA / iOS Home-Screen -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#003F87" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="LöwenKasse" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="apple-touch-icon" href="icon-180.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+<link rel="icon" type="image/svg+xml" href="icon.svg" />
+
+<style>
+  :root {
+    --bg: #f5f4ee; --surface: #ffffff; --text: #1a1a1a; --text-2: #6b6b66; --text-3: #a0a098;
+    --border: rgba(0,0,0,0.10); --border-2: rgba(0,0,0,0.18);
+    --danger-bg: #FCEBEB; --danger-text: #A32D2D; --danger-border: #F09595;
+    --success-bg: #EAF3DE; --success-text: #173404; --success-border: #97C459;
+    --info-bg: #E6F1FB; --info-text: #185FA5; --info-border: #B5D4F4;
+    --lions-blue: #003F87; --lions-gold: #FFB81C;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); min-height: 100vh; min-height: 100dvh;
+    display: flex; align-items: stretch; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tk-app {
+    background: var(--bg); padding: 14px; width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; gap: 0;
+  }
+
+  /* Header mit Logo */
+  .tk-app-header { display: flex; align-items: center; gap: 10px; padding: 4px 4px 14px; }
+  .tk-logo { width: 32px; height: 32px; flex-shrink: 0; }
+  .tk-h { display:flex; justify-content:space-between; align-items:center; flex: 1; gap: 8px; }
+  .tk-title { font-size: 18px; font-weight: 500; margin: 0; color: var(--text); }
+  .tk-iconbtn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); width: 38px; height: 38px; display:flex; align-items:center; justify-content:center; cursor: pointer; color: var(--text); font-size: 18px; padding: 0; }
+
+  .tk-total { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 12px; text-align: center; }
+  .tk-total-l { font-size: 11px; color: var(--text-2); margin: 0 0 4px; letter-spacing: 0.6px; font-weight: 500; }
+  .tk-total-v { font-size: 32px; font-weight: 500; margin: 0; }
+
+  .tk-tabs { display: flex; gap: 4px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .tk-tab { flex-shrink: 0; padding: 8px 13px; font-size: 13px; border-radius: var(--radius); background: var(--surface); border: 0.5px solid var(--border); cursor: pointer; color: var(--text); white-space: nowrap; font-weight: 500; }
+  .tk-tab.active { background: var(--text); color: var(--surface); border-color: var(--text); }
+
+  .tk-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .tk-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 11px; display: flex; align-items: center; gap: 10px; }
+  .tk-info { flex: 1; min-width: 0; }
+  .tk-name { font-size: 14px; font-weight: 500; margin: 0; }
+  .tk-sub { font-size: 12px; color: var(--text-2); margin: 1px 0 0; }
+  .tk-qty { display: flex; align-items: center; gap: 6px; }
+  .tk-qbtn { width: 38px; height: 38px; border-radius: var(--radius); border: 0.5px solid var(--border-2); background: var(--surface); cursor: pointer; font-size: 20px; font-weight: 500; display:flex; align-items:center; justify-content:center; color: var(--text); padding: 0; }
+  .tk-qbtn.minus { color: var(--danger-text); }
+  .tk-qbtn.plus { color: var(--success-text); }
+  .tk-qbtn:active { transform: scale(0.94); }
+  .tk-qval { font-size: 15px; font-weight: 500; min-width: 22px; text-align: center; }
+
+  .tk-summary { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 12px; }
+  .tk-sum-line { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; gap: 8px; }
+  .tk-sum-line span:first-child { flex: 1; min-width: 0; }
+  .tk-sum-empty { font-size: 13px; color: var(--text-3); text-align: center; padding: 8px 0; }
+  .tk-sum-neg { color: var(--danger-text); }
+  .tk-sum-auto { color: var(--text-2); font-style: italic; }
+  .tk-sum-divider { border-top: 0.5px solid var(--border); margin: 4px 0; }
+
+  .tk-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+  .tk-storno { padding: 14px; border-radius: var(--radius); background: var(--surface); color: var(--danger-text); border: 0.5px solid var(--danger-border); font-size: 14px; font-weight: 500; cursor: pointer; }
+  .tk-abr { padding: 14px; border-radius: var(--radius); background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); font-size: 14px; font-weight: 500; cursor: pointer; }
+  .tk-storno:disabled, .tk-abr:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .tk-info-note { background: var(--info-bg); border: 0.5px solid var(--info-border); border-radius: var(--radius); padding: 10px 12px; font-size: 12px; color: var(--info-text); margin-bottom: 8px; }
+
+  .tk-set-sec { margin-bottom: 16px; }
+  .tk-set-h3 { font-size: 12px; font-weight: 500; margin: 0 0 8px; color: var(--text-2); letter-spacing: 0.4px; }
+  .tk-set-wine { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 11px; margin-bottom: 6px; }
+  .tk-set-wine .row1 { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 6px; margin-bottom: 6px; }
+  .tk-set-wine .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .tk-set-wine .pricebox { display: flex; align-items: center; gap: 6px; }
+  .tk-set-wine .pricebox label { font-size: 10px; color: var(--text-2); letter-spacing: 0.3px; flex-shrink: 0; font-weight: 500; }
+  .tk-set-wine input { padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--surface); color: var(--text); width: 100%; box-sizing: border-box; }
+  .tk-set-row { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 4px; display: grid; grid-template-columns: 1fr 1fr 80px 28px; gap: 6px; align-items: center; }
+  .tk-set-row input { padding: 6px 8px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface); color: var(--text); width: 100%; box-sizing: border-box; }
+  .tk-del { background: transparent; border: none; cursor: pointer; color: var(--text-3); font-size: 18px; padding: 0; display: flex; align-items: center; justify-content: center; height: 28px; }
+  .tk-add { width: 100%; padding: 10px; border-radius: var(--radius); background: transparent; border: 0.5px dashed var(--border-2); cursor: pointer; font-size: 13px; color: var(--text-2); font-weight: 500; margin-top: 4px; }
+  .tk-pfand-input { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .tk-pfand-input input { width: 90px; padding: 6px 8px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 14px; text-align: right; background: var(--surface); color: var(--text); }
+
+  .tk-footer { margin-top: 24px; padding-top: 16px; text-align: center; border-top: 0.5px solid var(--border); }
+  .tk-footer-title { font-size: 12px; color: var(--text-2); font-weight: 500; margin: 0; letter-spacing: 0.3px; }
+  .tk-footer-sub { font-size: 11px; color: var(--text-3); margin: 4px 0 0; }
+
+  .tk-amount-card { border-radius: var(--radius-lg); padding: 16px; margin-bottom: 10px; text-align: center; border: 0.5px solid var(--border); }
+  .tk-amount-card.due { background: var(--surface); }
+  .tk-amount-card.change { background: var(--success-bg); border-color: var(--success-border); }
+  .tk-amount-card.short { background: var(--danger-bg); border-color: var(--danger-border); }
+  .tk-amount-l { font-size: 11px; letter-spacing: 0.6px; margin: 0 0 6px; font-weight: 500; }
+  .tk-amount-card.due .tk-amount-l { color: var(--text-2); }
+  .tk-amount-card.change .tk-amount-l { color: var(--success-text); }
+  .tk-amount-card.short .tk-amount-l { color: var(--danger-text); }
+  .tk-amount-v { font-size: 32px; font-weight: 500; margin: 0; }
+  .tk-amount-card.due .tk-amount-v { color: var(--text); }
+  .tk-amount-card.change .tk-amount-v { color: var(--success-text); }
+  .tk-amount-card.short .tk-amount-v { color: var(--danger-text); }
+
+  .tk-pay-input-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+  .tk-pay-input-wrap label { font-size: 13px; color: var(--text-2); flex-shrink: 0; }
+  .tk-pay-input { flex: 1; border: none; background: transparent; font-size: 22px; font-weight: 500; text-align: right; color: var(--text); width: 100%; outline: none; padding: 0; }
+  .tk-pay-input-wrap .currency { font-size: 18px; color: var(--text-2); }
+  .tk-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .tk-quick-btn { padding: 12px 4px; border-radius: var(--radius); background: var(--surface); border: 0.5px solid var(--border); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text); }
+  .tk-quick-btn:active { transform: scale(0.96); }
+  .tk-back { background: transparent; border: none; cursor: pointer; font-size: 14px; color: var(--info-text); padding: 4px 0; }
+</style>
+</head>
+<body>
+<div class="tk-app"><div id="tk-content"></div></div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'loewenkasse-menu-v1';
+
+  const DEFAULT_MENU = {
+    wines: [
+      { id: 'w1', name: 'Rauen', type: 'Grauburgunder trocken', bottlePrice: 24.00, glassPrice: 4.50 },
+      { id: 'w2', name: 'Rauen', type: 'Weißburgunder trocken', bottlePrice: 22.00, glassPrice: 4.00 },
+      { id: 'w3', name: 'Rauen', type: 'Rosé', bottlePrice: 20.00, glassPrice: 4.00 },
+      { id: 'w4', name: 'Rauen', type: 'Spätburgunder trocken', bottlePrice: 26.00, glassPrice: 5.00 },
+    ],
+    nonAlcoholic: [
+      { id: 'n1', name: 'Cola', type: '0,2 l Flasche', price: 3.00 },
+      { id: 'n2', name: 'Apfelschorle', type: '0,33 l Flasche', price: 3.00 },
+      { id: 'n3', name: 'Wasser still', type: '0,25 l Flasche', price: 2.50 },
+      { id: 'n4', name: 'Spezi', type: '0,33 l Flasche', price: 3.00 },
+    ],
+    depositPrice: 2.00,
+  };
+
+  function loadMenu() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          wines: Array.isArray(parsed.wines) ? parsed.wines : DEFAULT_MENU.wines,
+          nonAlcoholic: Array.isArray(parsed.nonAlcoholic) ? parsed.nonAlcoholic : DEFAULT_MENU.nonAlcoholic,
+          depositPrice: typeof parsed.depositPrice === 'number' ? parsed.depositPrice : DEFAULT_MENU.depositPrice,
+        };
+      }
+    } catch (e) { console.warn('Konnte Einstellungen nicht laden:', e); }
+    return JSON.parse(JSON.stringify(DEFAULT_MENU));
+  }
+
+  function saveMenu() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.menu)); }
+    catch (e) { console.warn('Konnte Einstellungen nicht speichern:', e); }
+  }
+
+  const state = {
+    view: 'order', tab: 'bottles',
+    menu: loadMenu(),
+    order: {}, extraDepositOut: 0, depositIn: 0,
+    lastTotal: 0, given: '', changeShown: false,
+  };
+
+  const fmt = (n) => n.toFixed(2).replace('.', ',') + ' €';
+  function resolve(id) {
+    if (id.startsWith('b_')) { const w = state.menu.wines.find(w => w.id === id.slice(2)); return w ? { name: 'Flasche ' + w.name, type: w.type, price: w.bottlePrice, hasDeposit: false } : null; }
+    if (id.startsWith('g_')) { const w = state.menu.wines.find(w => w.id === id.slice(2)); return w ? { name: 'Glas ' + w.name, type: w.type, price: w.glassPrice, hasDeposit: true } : null; }
+    const n = state.menu.nonAlcoholic.find(x => x.id === id);
+    return n ? { name: n.name, type: n.type, price: n.price, hasDeposit: false } : null;
+  }
+  function autoGlassCount() {
+    let c = 0;
+    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it && it.hasDeposit) c += qty; });
+    return c;
+  }
+  function calcTotal() {
+    let sum = 0;
+    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) sum += it.price * qty; });
+    sum += autoGlassCount() * state.menu.depositPrice;
+    sum += state.extraDepositOut * state.menu.depositPrice;
+    sum -= state.depositIn * state.menu.depositPrice;
+    return sum;
+  }
+  function setQty(id, delta) {
+    const next = Math.max(0, (state.order[id] || 0) + delta);
+    if (next === 0) delete state.order[id]; else state.order[id] = next;
+    render();
+  }
+  function setDeposit(kind, delta) {
+    if (kind === 'out') state.extraDepositOut = Math.max(0, state.extraDepositOut + delta);
+    else state.depositIn = Math.max(0, state.depositIn + delta);
+    render();
+  }
+  function resetOrder() { state.order = {}; state.extraDepositOut = 0; state.depositIn = 0; state.given = ''; state.changeShown = false; }
+  function tabItems() {
+    if (state.tab === 'bottles') return state.menu.wines.map(w => ({ id: 'b_' + w.id, name: w.name, type: w.type, price: w.bottlePrice }));
+    if (state.tab === 'wineGlasses') return state.menu.wines.map(w => ({ id: 'g_' + w.id, name: w.name, type: w.type, price: w.glassPrice }));
+    if (state.tab === 'nonAlcoholic') return state.menu.nonAlcoholic.slice();
+    return [];
+  }
+
+  const LOGO_SVG = `<svg class="tk-logo" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect width="1024" height="1024" rx="224" fill="#003F87"/>
+    <g transform="translate(512 512)" fill="#FFB81C">
+      <polygon points="0,-410 -44,-300 44,-300"/><polygon points="204,-356 120,-276 210,-230"/>
+      <polygon points="356,-236 260,-190 336,-120"/><polygon points="410,0 300,-50 300,50"/>
+      <polygon points="356,236 260,190 336,120"/><polygon points="204,356 120,276 210,230"/>
+      <polygon points="0,410 -44,300 44,300"/><polygon points="-204,356 -120,276 -210,230"/>
+      <polygon points="-356,236 -260,190 -336,120"/><polygon points="-410,0 -300,-50 -300,50"/>
+      <polygon points="-356,-236 -260,-190 -336,-120"/><polygon points="-204,-356 -120,-276 -210,-230"/>
+      <circle r="310"/>
+    </g>
+    <circle cx="512" cy="532" r="190" fill="#003F87"/>
+    <circle cx="444" cy="496" r="20" fill="#FFB81C"/><circle cx="580" cy="496" r="20" fill="#FFB81C"/>
+    <path d="M 512 552 L 480 592 L 544 592 Z" fill="#FFB81C"/>
+    <path d="M 512 592 Q 492 628 468 610" stroke="#FFB81C" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M 512 592 Q 532 628 556 610" stroke="#FFB81C" stroke-width="10" fill="none" stroke-linecap="round"/>
+  </svg>`;
+
+  function renderOrder() {
+    const total = calcTotal();
+    const tabs = [
+      { id: 'bottles', label: 'Flaschen' },
+      { id: 'wineGlasses', label: 'Gläser Wein' },
+      { id: 'nonAlcoholic', label: 'Alkoholfrei' },
+      { id: 'deposit', label: 'Pfand' },
+    ];
+    let listHtml = '';
+    if (state.tab === 'deposit') {
+      const dp = state.menu.depositPrice;
+      listHtml = `
+        <div class="tk-info-note">Pfand für Gläser Wein wird automatisch berechnet. Hier nur zusätzliche Gläser oder Rückgaben.</div>
+        <div class="tk-item"><div class="tk-info"><p class="tk-name">Extra Glas ausgeben</p><p class="tk-sub">+${fmt(dp)} (ohne Getränk)</p></div>
+          <div class="tk-qty"><button class="tk-qbtn minus" data-d="out" data-v="-1">−</button><span class="tk-qval">${state.extraDepositOut}</span><button class="tk-qbtn plus" data-d="out" data-v="1">+</button></div></div>
+        <div class="tk-item"><div class="tk-info"><p class="tk-name">Pfand zurück</p><p class="tk-sub">−${fmt(dp)} pro Glas</p></div>
+          <div class="tk-qty"><button class="tk-qbtn minus" data-d="in" data-v="-1">−</button><span class="tk-qval">${state.depositIn}</span><button class="tk-qbtn plus" data-d="in" data-v="1">+</button></div></div>
+      `;
+    } else {
+      listHtml = tabItems().map(it => {
+        const qty = state.order[it.id] || 0;
+        return `<div class="tk-item"><div class="tk-info"><p class="tk-name">${it.name}</p><p class="tk-sub">${it.type} · ${fmt(it.price)}</p></div>
+          <div class="tk-qty"><button class="tk-qbtn minus" data-id="${it.id}" data-v="-1">−</button><span class="tk-qval">${qty}</span><button class="tk-qbtn plus" data-id="${it.id}" data-v="1">+</button></div></div>`;
+      }).join('');
+    }
+    const lines = [];
+    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) lines.push({ label: `${qty}× ${it.name} ${it.type}`.trim(), val: it.price * qty }); });
+    const autoGlass = autoGlassCount();
+    const summaryLines = lines.map(l => `<div class="tk-sum-line"><span>${l.label}</span><span>${fmt(l.val)}</span></div>`).join('');
+    let pfandLines = '';
+    if (autoGlass > 0) pfandLines += `<div class="tk-sum-line tk-sum-auto"><span>${autoGlass}× Glaspfand (auto)</span><span>${fmt(autoGlass * state.menu.depositPrice)}</span></div>`;
+    if (state.extraDepositOut > 0) pfandLines += `<div class="tk-sum-line"><span>${state.extraDepositOut}× Extra Glas</span><span>${fmt(state.extraDepositOut * state.menu.depositPrice)}</span></div>`;
+    if (state.depositIn > 0) pfandLines += `<div class="tk-sum-line tk-sum-neg"><span>${state.depositIn}× Pfand zurück</span><span>−${fmt(state.depositIn * state.menu.depositPrice)}</span></div>`;
+    const hasOrder = lines.length > 0 || state.extraDepositOut > 0 || state.depositIn > 0;
+    const sumHtml = hasOrder
+      ? summaryLines + (pfandLines ? `<div class="tk-sum-divider"></div>` + pfandLines : '')
+      : '<div class="tk-sum-empty">Noch keine Bestellung</div>';
+    return `
+      <div class="tk-app-header">
+        ${LOGO_SVG}
+        <div class="tk-h">
+          <h1 class="tk-title">LöwenKasse</h1>
+          <button class="tk-iconbtn" id="tk-to-settings" aria-label="Einstellungen">⚙</button>
+        </div>
+      </div>
+      <div class="tk-total"><p class="tk-total-l">GESAMT</p><p class="tk-total-v">${fmt(total)}</p></div>
+      <div class="tk-tabs">${tabs.map(t => `<button class="tk-tab ${state.tab===t.id?'active':''}" data-tab="${t.id}">${t.label}</button>`).join('')}</div>
+      <div class="tk-list">${listHtml}</div>
+      <div class="tk-summary">${sumHtml}</div>
+      <div class="tk-actions">
+        <button class="tk-storno" id="tk-storno" ${hasOrder?'':'disabled'}>Stornieren</button>
+        <button class="tk-abr" id="tk-abr" ${hasOrder?'':'disabled'}>Abrechnen · ${fmt(total)}</button>
+      </div>`;
+  }
+
+  function renderSettings() {
+    const wines = state.menu.wines.map((w, idx) => `
+      <div class="tk-set-wine">
+        <div class="row1">
+          <input data-wkey="name" data-idx="${idx}" value="${w.name}" placeholder="Bezeichnung" />
+          <input data-wkey="type" data-idx="${idx}" value="${w.type}" placeholder="Typ" />
+          <button class="tk-del" data-del-w="${idx}" aria-label="löschen">×</button>
+        </div>
+        <div class="row2">
+          <div class="pricebox"><label>FLASCHE</label><input data-wkey="bottlePrice" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${w.bottlePrice.toFixed(2)}" /></div>
+          <div class="pricebox"><label>GLAS</label><input data-wkey="glassPrice" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${w.glassPrice.toFixed(2)}" /></div>
+        </div>
+      </div>`).join('');
+    const nas = state.menu.nonAlcoholic.map((it, idx) => `
+      <div class="tk-set-row">
+        <input data-nakey="name" data-idx="${idx}" value="${it.name}" placeholder="Bezeichnung" />
+        <input data-nakey="type" data-idx="${idx}" value="${it.type}" placeholder="Größe" />
+        <input data-nakey="price" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${it.price.toFixed(2)}" />
+        <button class="tk-del" data-del-na="${idx}" aria-label="löschen">×</button>
+      </div>`).join('');
+    return `
+      <div class="tk-app-header">
+        <button class="tk-back" id="tk-back">← Zurück</button>
+        <div class="tk-h"><h1 class="tk-title">Einstellungen</h1><span style="width:38px;"></span></div>
+      </div>
+      <div class="tk-set-sec"><h3 class="tk-set-h3">WEINE (FLASCHE + GLAS)</h3>${wines}<button class="tk-add" id="tk-add-wine">＋ Wein hinzufügen</button></div>
+      <div class="tk-set-sec"><h3 class="tk-set-h3">ALKOHOLFREI (KLEINFLASCHEN, OHNE PFAND)</h3>${nas}<button class="tk-add" id="tk-add-na">＋ Getränk hinzufügen</button></div>
+      <div class="tk-set-sec"><h3 class="tk-set-h3">GLASPFAND</h3>
+        <div class="tk-pfand-input"><span style="font-size:14px;">Pfand pro Glas Wein (auto)</span><input type="number" inputmode="decimal" step="0.10" id="tk-dep-price" value="${state.menu.depositPrice.toFixed(2)}" /></div>
+      </div>
+      <div class="tk-footer">
+        <p class="tk-footer-title">LöwenKasse · Version 1.0</p>
+        <p class="tk-footer-sub">Für den Lions Club Bitburg-Beda</p>
+      </div>`;
+  }
+
+  function renderPayment() {
+    const total = state.lastTotal;
+    const givenNum = parseFloat((state.given || '').replace(',', '.')) || 0;
+    const change = givenNum - total;
+    const showChange = state.changeShown;
+    const isShort = showChange && change < 0;
+    const quickAmounts = [];
+    if (total > 0) {
+      const opts = new Set();
+      const ceil5 = Math.ceil(total / 5) * 5;
+      const ceil10 = Math.ceil(total / 10) * 10;
+      opts.add(Math.ceil(total));
+      if (ceil5 > total) opts.add(ceil5);
+      opts.add(ceil10);
+      opts.add(ceil10 + 10);
+      opts.add(50); opts.add(100);
+      Array.from(opts).filter(v => v >= total && v <= 200).sort((a,b)=>a-b).slice(0,4).forEach(v => quickAmounts.push(v));
+    }
+    return `
+      <div class="tk-app-header">
+        <button class="tk-back" id="tk-back-pay">← Zurück</button>
+        <div class="tk-h"><h1 class="tk-title">Barzahlung</h1><span style="width:38px;"></span></div>
+      </div>
+      <div class="tk-amount-card due">
+        <p class="tk-amount-l">ZU ZAHLEN</p>
+        <p class="tk-amount-v">${fmt(total)}</p>
+      </div>
+      <div class="tk-pay-input-wrap">
+        <label>Gegeben</label>
+        <input class="tk-pay-input" id="tk-given" type="text" inputmode="decimal" value="${state.given}" placeholder="0,00" />
+        <span class="currency">€</span>
+      </div>
+      <div class="tk-quick">
+        ${quickAmounts.map(v => `<button class="tk-quick-btn" data-quick="${v}">${v} €</button>`).join('')}
+      </div>
+      ${showChange ? `
+        <div class="tk-amount-card ${isShort ? 'short' : 'change'}">
+          <p class="tk-amount-l">${isShort ? 'FEHLT NOCH' : 'RÜCKGELD'}</p>
+          <p class="tk-amount-v">${fmt(Math.abs(change))}</p>
+        </div>
+      ` : ''}
+      <div class="tk-actions" style="grid-template-columns: 1fr 1fr;">
+        <button class="tk-storno" id="tk-pay-cancel">Abbrechen</button>
+        <button class="tk-abr" id="tk-pay-calc" ${givenNum > 0 ? '' : 'disabled'}>${showChange && !isShort ? 'Fertig · Neue Bestellung' : 'Berechnen'}</button>
+      </div>
+    `;
+  }
+
+  function render() {
+    const root = document.getElementById('tk-content');
+    if (state.view === 'order') root.innerHTML = renderOrder();
+    else if (state.view === 'settings') root.innerHTML = renderSettings();
+    else if (state.view === 'payment') root.innerHTML = renderPayment();
+    bind();
+  }
+  function bind() {
+    document.querySelectorAll('.tk-tab').forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
+    document.querySelectorAll('.tk-qbtn').forEach(b => b.onclick = () => {
+      const v = parseInt(b.dataset.v, 10);
+      if (b.dataset.id) setQty(b.dataset.id, v); else if (b.dataset.d) setDeposit(b.dataset.d, v);
+    });
+    const s = document.getElementById('tk-to-settings'); if (s) s.onclick = () => { state.view = 'settings'; render(); };
+    const bk = document.getElementById('tk-back'); if (bk) bk.onclick = () => { state.view = 'order'; render(); };
+    const st = document.getElementById('tk-storno'); if (st) st.onclick = () => { resetOrder(); render(); };
+    const ab = document.getElementById('tk-abr'); if (ab) ab.onclick = () => { state.lastTotal = calcTotal(); state.given = ''; state.changeShown = false; state.view = 'payment'; render(); };
+
+    const back = document.getElementById('tk-back-pay'); if (back) back.onclick = () => { state.view = 'order'; render(); };
+    const cancel = document.getElementById('tk-pay-cancel'); if (cancel) cancel.onclick = () => { resetOrder(); state.view = 'order'; render(); };
+    const calc = document.getElementById('tk-pay-calc'); if (calc) calc.onclick = () => {
+      const g = parseFloat((state.given || '').replace(',', '.')) || 0;
+      if (state.changeShown && g >= state.lastTotal) { resetOrder(); state.view = 'order'; }
+      else { state.changeShown = true; }
+      render();
+    };
+    const given = document.getElementById('tk-given');
+    if (given) {
+      given.oninput = () => { state.given = given.value; state.changeShown = false; render(); };
+      given.focus();
+      try { given.setSelectionRange(given.value.length, given.value.length); } catch(e){}
+    }
+    document.querySelectorAll('[data-quick]').forEach(b => b.onclick = () => {
+      state.given = String(b.dataset.quick); state.changeShown = true; render();
+    });
+
+    document.querySelectorAll('[data-wkey]').forEach(inp => inp.oninput = () => {
+      const idx = parseInt(inp.dataset.idx, 10), key = inp.dataset.wkey;
+      if (key === 'bottlePrice' || key === 'glassPrice') state.menu.wines[idx][key] = parseFloat((inp.value || '').replace(',', '.')) || 0;
+      else state.menu.wines[idx][key] = inp.value;
+      saveMenu();
+    });
+    document.querySelectorAll('[data-nakey]').forEach(inp => inp.oninput = () => {
+      const idx = parseInt(inp.dataset.idx, 10), key = inp.dataset.nakey;
+      if (key === 'price') state.menu.nonAlcoholic[idx][key] = parseFloat((inp.value || '').replace(',', '.')) || 0;
+      else state.menu.nonAlcoholic[idx][key] = inp.value;
+      saveMenu();
+    });
+    document.querySelectorAll('[data-del-w]').forEach(b => b.onclick = () => { state.menu.wines.splice(parseInt(b.dataset.delW, 10), 1); saveMenu(); render(); });
+    document.querySelectorAll('[data-del-na]').forEach(b => b.onclick = () => { state.menu.nonAlcoholic.splice(parseInt(b.dataset.delNa, 10), 1); saveMenu(); render(); });
+    const addW = document.getElementById('tk-add-wine'); if (addW) addW.onclick = () => { state.menu.wines.push({ id: 'w' + Date.now(), name: '', type: '', bottlePrice: 0, glassPrice: 0 }); saveMenu(); render(); };
+    const addN = document.getElementById('tk-add-na'); if (addN) addN.onclick = () => { state.menu.nonAlcoholic.push({ id: 'n' + Date.now(), name: '', type: '', price: 0 }); saveMenu(); render(); };
+    const dep = document.getElementById('tk-dep-price'); if (dep) dep.oninput = () => { state.menu.depositPrice = parseFloat((dep.value || '').replace(',', '.')) || 0; saveMenu(); };
+  }
+  render();
+
+  // Service Worker für Offline-Betrieb
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(err => {
+        console.warn('Service Worker konnte nicht registriert werden:', err);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>

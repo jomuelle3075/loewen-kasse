@@ -1,0 +1,24 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="224" fill="#003F87"/>
+  <g transform="translate(512 512)" fill="#FFB81C">
+    <polygon points="0,-410 -44,-300 44,-300"/>
+    <polygon points="204,-356 120,-276 210,-230"/>
+    <polygon points="356,-236 260,-190 336,-120"/>
+    <polygon points="410,0 300,-50 300,50"/>
+    <polygon points="356,236 260,190 336,120"/>
+    <polygon points="204,356 120,276 210,230"/>
+    <polygon points="0,410 -44,300 44,300"/>
+    <polygon points="-204,356 -120,276 -210,230"/>
+    <polygon points="-356,236 -260,190 -336,120"/>
+    <polygon points="-410,0 -300,-50 -300,50"/>
+    <polygon points="-356,-236 -260,-190 -336,-120"/>
+    <polygon points="-204,-356 -120,-276 -210,-230"/>
+    <circle r="310"/>
+  </g>
+  <circle cx="512" cy="532" r="190" fill="#003F87"/>
+  <circle cx="444" cy="496" r="20" fill="#FFB81C"/>
+  <circle cx="580" cy="496" r="20" fill="#FFB81C"/>
+  <path d="M 512 552 L 480 592 L 544 592 Z" fill="#FFB81C"/>
+  <path d="M 512 592 Q 492 628 468 610" stroke="#FFB81C" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <path d="M 512 592 Q 532 628 556 610" stroke="#FFB81C" stroke-width="10" fill="none" stroke-linecap="round"/>
+</svg>
