@@ -54,7 +54,8 @@
   .tk-total-v { font-size: 32px; font-weight: 500; margin: 0; }
 
   .tk-tabs { display: flex; gap: 4px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
-  .tk-tab { flex-shrink: 0; padding: 8px 13px; font-size: 13px; border-radius: var(--radius); background: var(--surface); border: 0.5px solid var(--border); cursor: pointer; color: var(--text); white-space: nowrap; font-weight: 500; }
+  .tk-tab { flex-shrink: 0; padding: 8px 13px; font-size: 13px; border-radius: var(--radius); background: var(--surface); border: 0.5px solid var(--border); cursor: pointer; color: var(--text); white-space: nowrap; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .tk-tab-icon { font-size: 14px; line-height: 1; }
   .tk-tab.active { background: var(--text); color: var(--surface); border-color: var(--text); }
 
   .tk-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
@@ -235,10 +236,10 @@
   function renderOrder() {
     const total = calcTotal();
     const tabs = [
-      { id: 'bottles', label: 'Flaschen' },
-      { id: 'wineGlasses', label: 'Gläser Wein' },
-      { id: 'nonAlcoholic', label: 'Alkoholfrei' },
-      { id: 'deposit', label: 'Pfand' },
+      { id: 'bottles', label: 'Flasche', icon: '🍾' },
+      { id: 'wineGlasses', label: 'Glas', icon: '🍷' },
+      { id: 'nonAlcoholic', label: 'Alkoholfrei', icon: '🥤' },
+      { id: 'deposit', label: 'Pfand', icon: '♻️' },
     ];
     let listHtml = '';
     if (state.tab === 'deposit') {
@@ -278,7 +279,7 @@
         </div>
       </div>
       <div class="tk-total"><p class="tk-total-l">GESAMT</p><p class="tk-total-v">${fmt(total)}</p></div>
-      <div class="tk-tabs">${tabs.map(t => `<button class="tk-tab ${state.tab===t.id?'active':''}" data-tab="${t.id}">${t.label}</button>`).join('')}</div>
+      <div class="tk-tabs">${tabs.map(t => `<button class="tk-tab ${state.tab===t.id?'active':''}" data-tab="${t.id}"><span class="tk-tab-icon">${t.icon}</span>${t.label}</button>`).join('')}</div>
       <div class="tk-list">${listHtml}</div>
       <div class="tk-summary">${sumHtml}</div>
       <div class="tk-actions">
@@ -390,10 +391,10 @@
     const ab = document.getElementById('tk-abr'); if (ab) ab.onclick = () => { state.lastTotal = calcTotal(); state.given = ''; state.changeShown = false; state.view = 'payment'; render(); };
 
     const back = document.getElementById('tk-back-pay'); if (back) back.onclick = () => { state.view = 'order'; render(); };
-    const cancel = document.getElementById('tk-pay-cancel'); if (cancel) cancel.onclick = () => { resetOrder(); state.view = 'order'; render(); };
+    const cancel = document.getElementById('tk-pay-cancel'); if (cancel) cancel.onclick = () => { resetOrder(); state.tab = 'bottles'; state.view = 'order'; render(); };
     const calc = document.getElementById('tk-pay-calc'); if (calc) calc.onclick = () => {
       const g = parseFloat((state.given || '').replace(',', '.')) || 0;
-      if (state.changeShown && g >= state.lastTotal) { resetOrder(); state.view = 'order'; }
+      if (state.changeShown && g >= state.lastTotal) { resetOrder(); state.tab = 'bottles'; state.view = 'order'; }
       else { state.changeShown = true; }
       render();
     };
