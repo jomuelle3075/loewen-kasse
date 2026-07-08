@@ -59,10 +59,14 @@
   .tk-tab.active { background: var(--text); color: var(--surface); border-color: var(--text); }
 
   .tk-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-  .tk-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 11px; display: flex; align-items: center; gap: 10px; }
+  .tk-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 11px; display: flex; align-items: center; gap: 10px; transition: background 0.12s, border-color 0.12s; }
+  .tk-item.selected { background: var(--info-bg); border: 1px solid var(--lions-blue); }
+  .tk-badge { flex-shrink: 0; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 6px; background: var(--lions-blue); color: #fff; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+  .tk-badge-sm { min-width: 18px; height: 18px; padding: 0 4px; font-size: 10px; vertical-align: middle; }
   .tk-info { flex: 1; min-width: 0; }
   .tk-name { font-size: 14px; font-weight: 500; margin: 0; }
   .tk-sub { font-size: 12px; color: var(--text-2); margin: 1px 0 0; }
+  .tk-price { flex-shrink: 0; font-size: 16px; font-weight: 700; color: var(--lions-blue); white-space: nowrap; text-align: right; min-width: 58px; }
   .tk-qty { display: flex; align-items: center; gap: 6px; }
   .tk-qbtn { width: 38px; height: 38px; border-radius: var(--radius); border: 0.5px solid var(--border-2); background: var(--surface); cursor: pointer; font-size: 20px; font-weight: 500; display:flex; align-items:center; justify-content:center; color: var(--text); padding: 0; }
   .tk-qbtn.minus { color: var(--danger-text); }
@@ -88,15 +92,19 @@
   .tk-set-sec { margin-bottom: 16px; }
   .tk-set-h3 { font-size: 12px; font-weight: 500; margin: 0 0 8px; color: var(--text-2); letter-spacing: 0.4px; }
   .tk-set-wine { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 11px; margin-bottom: 6px; }
-  .tk-set-wine .row1 { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 6px; margin-bottom: 6px; }
+  .tk-set-wine .row1 { display: grid; grid-template-columns: 46px 1fr 1fr 28px; gap: 6px; margin-bottom: 6px; }
+  .tk-set-wine input.nr { text-align: center; padding-left: 4px; padding-right: 4px; }
   .tk-set-wine .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .tk-set-wine .pricebox { display: flex; align-items: center; gap: 6px; }
   .tk-set-wine .pricebox label { font-size: 10px; color: var(--text-2); letter-spacing: 0.3px; flex-shrink: 0; font-weight: 500; }
   .tk-set-wine input { padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--surface); color: var(--text); width: 100%; box-sizing: border-box; }
-  .tk-set-row { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 4px; display: grid; grid-template-columns: 1fr 1fr 80px 28px; gap: 6px; align-items: center; }
+  .tk-set-row { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin-bottom: 4px; display: grid; grid-template-columns: 1fr 1fr 64px auto 28px; gap: 6px; align-items: center; }
   .tk-set-row input { padding: 6px 8px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface); color: var(--text); width: 100%; box-sizing: border-box; }
+  .tk-set-row input[type="checkbox"] { width: auto; padding: 0; border: none; }
+  .tk-dep-toggle { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-2); white-space: nowrap; letter-spacing: 0.3px; }
   .tk-del { background: transparent; border: none; cursor: pointer; color: var(--text-3); font-size: 18px; padding: 0; display: flex; align-items: center; justify-content: center; height: 28px; }
   .tk-add { width: 100%; padding: 10px; border-radius: var(--radius); background: transparent; border: 0.5px dashed var(--border-2); cursor: pointer; font-size: 13px; color: var(--text-2); font-weight: 500; margin-top: 4px; }
+  .tk-reset { border-color: var(--danger-border); color: var(--danger-text); border-style: solid; }
   .tk-pfand-input { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; display: flex; justify-content: space-between; align-items: center; }
   .tk-pfand-input input { width: 90px; padding: 6px 8px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 14px; text-align: right; background: var(--surface); color: var(--text); }
 
@@ -132,22 +140,29 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = 'loewenkasse-menu-v1';
+  const STORAGE_KEY = 'loewenkasse-menu-v2';
 
   const DEFAULT_MENU = {
     wines: [
-      { id: 'w1', name: 'Rauen', type: 'Grauburgunder trocken', bottlePrice: 24.00, glassPrice: 4.50 },
-      { id: 'w2', name: 'Rauen', type: 'Weißburgunder trocken', bottlePrice: 22.00, glassPrice: 4.00 },
-      { id: 'w3', name: 'Rauen', type: 'Rosé', bottlePrice: 20.00, glassPrice: 4.00 },
-      { id: 'w4', name: 'Rauen', type: 'Spätburgunder trocken', bottlePrice: 26.00, glassPrice: 5.00 },
+      { id: 'w0',  nr: 0,  name: 'Fruup',            type: 'Red Moon 99,6 Sparkling alkoholfrei',       bottlePrice: 22.00, glassPrice: 3.50 },
+      { id: 'w1',  nr: 1,  name: 'RAUEN',            type: 'Riesling „Alte Reben“ - lieblich',          bottlePrice: 22.00, glassPrice: 3.50 },
+      { id: 'w2',  nr: 2,  name: 'VAN VOLXEM',     type: 'VV Rosé Pinot Noir - trocken',              bottlePrice: 25.00, glassPrice: 4.00 },
+      { id: 'w3',  nr: 3,  name: 'VAN VOLXEM',     type: '„Weißburgunder VV“ - trocken',              bottlePrice: 25.00, glassPrice: 4.00 },
+      { id: 'w4',  nr: 4,  name: 'APEL',             type: 'Grauer Burgunder - trocken',                bottlePrice: 25.00, glassPrice: 4.00 },
+      { id: 'w5',  nr: 5,  name: 'APEL',             type: 'Blanc de Noir - feinherb',                  bottlePrice: 25.00, glassPrice: 4.00 },
+      { id: 'w6',  nr: 6,  name: 'VAN VOLXEM',     type: 'Riesling Kabinett „Rotschiefer“ - feinherb', bottlePrice: 28.00, glassPrice: 5.00 },
+      { id: 'w7',  nr: 7,  name: 'Cà dei Frati', type: '„I Frati Lugana“ - trocken',        bottlePrice: 35.00, glassPrice: 6.00 },
+      { id: 'w8',  nr: 8,  name: 'Bischöfliche Weingüter',           type: 'Crémant',                                    bottlePrice: 28.00, glassPrice: 5.00 },
+      { id: 'w9',  nr: 9,  name: 'Poll-Fabaire',                     type: 'Crémant',                                    bottlePrice: 28.00, glassPrice: 5.00 },
+      { id: 'w10', nr: 10, name: 'Crémant O-Saft',                   type: 'Crémant mit O-Saft',                         bottlePrice: null,  glassPrice: 4.50 },
     ],
     nonAlcoholic: [
-      { id: 'n1', name: 'Cola', type: '0,2 l Flasche', price: 3.00 },
-      { id: 'n2', name: 'Apfelschorle', type: '0,33 l Flasche', price: 3.00 },
-      { id: 'n3', name: 'Wasser still', type: '0,25 l Flasche', price: 2.50 },
-      { id: 'n4', name: 'Spezi', type: '0,33 l Flasche', price: 3.00 },
+      { id: 'n1', name: 'Weinschorle mit Elbling',      type: 'Glas',  price: 4.00, deposit: true },
+      { id: 'n2', name: 'O-Saft',                       type: 'Glas',  price: 3.00, deposit: true },
+      { id: 'n3', name: 'Wasser (Sprudel / Naturell)',  type: 'klein', price: 2.50, deposit: false },
+      { id: 'n4', name: 'Wasser (Sprudel)',             type: 'groß',  price: 6.50, deposit: false },
     ],
-    depositPrice: 2.00,
+    depositPrice: 3.00,
   };
 
   function loadMenu() {
@@ -179,10 +194,10 @@
 
   const fmt = (n) => n.toFixed(2).replace('.', ',') + ' €';
   function resolve(id) {
-    if (id.startsWith('b_')) { const w = state.menu.wines.find(w => w.id === id.slice(2)); return w ? { name: 'Flasche ' + w.name, type: w.type, price: w.bottlePrice, hasDeposit: false } : null; }
-    if (id.startsWith('g_')) { const w = state.menu.wines.find(w => w.id === id.slice(2)); return w ? { name: 'Glas ' + w.name, type: w.type, price: w.glassPrice, hasDeposit: true } : null; }
+    if (id.startsWith('b_')) { const w = state.menu.wines.find(w => w.id === id.slice(2)); return (w && w.bottlePrice != null) ? { name: 'Flasche ' + w.name, type: w.type, price: w.bottlePrice, hasDeposit: false, nr: w.nr } : null; }
+    if (id.startsWith('g_')) { const w = state.menu.wines.find(w => w.id === id.slice(2)); return w ? { name: 'Glas ' + w.name, type: w.type, price: w.glassPrice, hasDeposit: true, nr: w.nr } : null; }
     const n = state.menu.nonAlcoholic.find(x => x.id === id);
-    return n ? { name: n.name, type: n.type, price: n.price, hasDeposit: false } : null;
+    return n ? { name: n.name, type: n.type, price: n.price, hasDeposit: !!n.deposit } : null;
   }
   function autoGlassCount() {
     let c = 0;
@@ -209,8 +224,8 @@
   }
   function resetOrder() { state.order = {}; state.extraDepositOut = 0; state.depositIn = 0; state.given = ''; state.changeShown = false; }
   function tabItems() {
-    if (state.tab === 'bottles') return state.menu.wines.map(w => ({ id: 'b_' + w.id, name: w.name, type: w.type, price: w.bottlePrice }));
-    if (state.tab === 'wineGlasses') return state.menu.wines.map(w => ({ id: 'g_' + w.id, name: w.name, type: w.type, price: w.glassPrice }));
+    if (state.tab === 'bottles') return state.menu.wines.filter(w => w.bottlePrice != null).map(w => ({ id: 'b_' + w.id, nr: w.nr, name: w.name, type: w.type, price: w.bottlePrice }));
+    if (state.tab === 'wineGlasses') return state.menu.wines.map(w => ({ id: 'g_' + w.id, nr: w.nr, name: w.name, type: w.type, price: w.glassPrice }));
     if (state.tab === 'nonAlcoholic') return state.menu.nonAlcoholic.slice();
     return [];
   }
@@ -238,7 +253,7 @@
     const tabs = [
       { id: 'bottles', label: 'Flasche', icon: '🍾' },
       { id: 'wineGlasses', label: 'Glas', icon: '🍷' },
-      { id: 'nonAlcoholic', label: 'Wasser', icon: '💧' },
+      { id: 'nonAlcoholic', label: 'Sonstige', icon: '🥤' },
       { id: 'deposit', label: 'Pfand', icon: '♻️' },
     ];
     let listHtml = '';
@@ -246,22 +261,24 @@
       const dp = state.menu.depositPrice;
       listHtml = `
         <div class="tk-info-note">Pfand für Gläser Wein wird automatisch berechnet. Hier nur zusätzliche Gläser oder Rückgaben.</div>
-        <div class="tk-item"><div class="tk-info"><p class="tk-name">Extra Glas ausgeben</p><p class="tk-sub">+${fmt(dp)} (ohne Getränk)</p></div>
+        <div class="tk-item${state.extraDepositOut > 0 ? ' selected' : ''}"><div class="tk-info"><p class="tk-name">Extra Glas ausgeben</p><p class="tk-sub">+${fmt(dp)} (ohne Getränk)</p></div>
           <div class="tk-qty"><button class="tk-qbtn minus" data-d="out" data-v="-1">−</button><span class="tk-qval">${state.extraDepositOut}</span><button class="tk-qbtn plus" data-d="out" data-v="1">+</button></div></div>
-        <div class="tk-item"><div class="tk-info"><p class="tk-name">Pfand zurück</p><p class="tk-sub">−${fmt(dp)} pro Glas</p></div>
+        <div class="tk-item${state.depositIn > 0 ? ' selected' : ''}"><div class="tk-info"><p class="tk-name">Pfand zurück</p><p class="tk-sub">−${fmt(dp)} pro Glas</p></div>
           <div class="tk-qty"><button class="tk-qbtn minus" data-d="in" data-v="-1">−</button><span class="tk-qval">${state.depositIn}</span><button class="tk-qbtn plus" data-d="in" data-v="1">+</button></div></div>
       `;
     } else {
       listHtml = tabItems().map(it => {
         const qty = state.order[it.id] || 0;
-        return `<div class="tk-item"><div class="tk-info"><p class="tk-name">${it.name}</p><p class="tk-sub">${it.type} · ${fmt(it.price)}</p></div>
+        const badge = (it.nr != null) ? `<span class="tk-badge">${it.nr}</span>` : '';
+        return `<div class="tk-item${qty > 0 ? ' selected' : ''}">${badge}<div class="tk-info"><p class="tk-name">${it.name}</p><p class="tk-sub">${it.type}</p></div>
+          <span class="tk-price">${fmt(it.price)}</span>
           <div class="tk-qty"><button class="tk-qbtn minus" data-id="${it.id}" data-v="-1">−</button><span class="tk-qval">${qty}</span><button class="tk-qbtn plus" data-id="${it.id}" data-v="1">+</button></div></div>`;
       }).join('');
     }
     const lines = [];
-    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) lines.push({ label: `${qty}× ${it.name} ${it.type}`.trim(), val: it.price * qty }); });
+    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) lines.push({ label: `${qty}× ${it.name} ${it.type}`.trim(), val: it.price * qty, nr: it.nr }); });
     const autoGlass = autoGlassCount();
-    const summaryLines = lines.map(l => `<div class="tk-sum-line"><span>${l.label}</span><span>${fmt(l.val)}</span></div>`).join('');
+    const summaryLines = lines.map(l => `<div class="tk-sum-line"><span>${l.nr != null ? `<span class="tk-badge tk-badge-sm">${l.nr}</span> ` : ''}${l.label}</span><span>${fmt(l.val)}</span></div>`).join('');
     let pfandLines = '';
     if (autoGlass > 0) pfandLines += `<div class="tk-sum-line tk-sum-auto"><span>${autoGlass}× Glaspfand (auto)</span><span>${fmt(autoGlass * state.menu.depositPrice)}</span></div>`;
     if (state.extraDepositOut > 0) pfandLines += `<div class="tk-sum-line"><span>${state.extraDepositOut}× Extra Glas</span><span>${fmt(state.extraDepositOut * state.menu.depositPrice)}</span></div>`;
@@ -292,13 +309,14 @@
     const wines = state.menu.wines.map((w, idx) => `
       <div class="tk-set-wine">
         <div class="row1">
+          <input class="nr" data-wkey="nr" data-idx="${idx}" type="number" inputmode="numeric" value="${w.nr != null ? w.nr : ''}" placeholder="Nr" />
           <input data-wkey="name" data-idx="${idx}" value="${w.name}" placeholder="Bezeichnung" />
           <input data-wkey="type" data-idx="${idx}" value="${w.type}" placeholder="Typ" />
           <button class="tk-del" data-del-w="${idx}" aria-label="löschen">×</button>
         </div>
         <div class="row2">
-          <div class="pricebox"><label>FLASCHE</label><input data-wkey="bottlePrice" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${w.bottlePrice.toFixed(2)}" /></div>
-          <div class="pricebox"><label>GLAS</label><input data-wkey="glassPrice" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${w.glassPrice.toFixed(2)}" /></div>
+          <div class="pricebox"><label>FLASCHE</label><input data-wkey="bottlePrice" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${w.bottlePrice != null ? w.bottlePrice.toFixed(2) : ''}" placeholder="—" /></div>
+          <div class="pricebox"><label>GLAS</label><input data-wkey="glassPrice" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${w.glassPrice != null ? w.glassPrice.toFixed(2) : ''}" /></div>
         </div>
       </div>`).join('');
     const nas = state.menu.nonAlcoholic.map((it, idx) => `
@@ -306,6 +324,7 @@
         <input data-nakey="name" data-idx="${idx}" value="${it.name}" placeholder="Bezeichnung" />
         <input data-nakey="type" data-idx="${idx}" value="${it.type}" placeholder="Größe" />
         <input data-nakey="price" data-idx="${idx}" type="number" inputmode="decimal" step="0.10" value="${it.price.toFixed(2)}" />
+        <label class="tk-dep-toggle"><input type="checkbox" data-nadep="${idx}" ${it.deposit ? 'checked' : ''} />Pfand</label>
         <button class="tk-del" data-del-na="${idx}" aria-label="löschen">×</button>
       </div>`).join('');
     return `
@@ -316,10 +335,13 @@
       <div class="tk-set-sec"><h3 class="tk-set-h3">WEINE (FLASCHE + GLAS)</h3>${wines}<button class="tk-add" id="tk-add-wine">＋ Wein hinzufügen</button></div>
       <div class="tk-set-sec"><h3 class="tk-set-h3">ALKOHOLFREI (KLEINFLASCHEN, OHNE PFAND)</h3>${nas}<button class="tk-add" id="tk-add-na">＋ Getränk hinzufügen</button></div>
       <div class="tk-set-sec"><h3 class="tk-set-h3">GLASPFAND</h3>
-        <div class="tk-pfand-input"><span style="font-size:14px;">Pfand pro Glas Wein (auto)</span><input type="number" inputmode="decimal" step="0.10" id="tk-dep-price" value="${state.menu.depositPrice.toFixed(2)}" /></div>
+        <div class="tk-pfand-input"><span style="font-size:14px;">Pfand pro Glas (auto)</span><input type="number" inputmode="decimal" step="0.10" id="tk-dep-price" value="${state.menu.depositPrice.toFixed(2)}" /></div>
+      </div>
+      <div class="tk-set-sec">
+        <button class="tk-add tk-reset" id="tk-reset-menu">↺ Auf Standard-Karte zurücksetzen</button>
       </div>
       <div class="tk-footer">
-        <p class="tk-footer-title">LöwenKasse · Version 1.0</p>
+        <p class="tk-footer-title">LöwenKasse · Version 2.0</p>
         <p class="tk-footer-sub">Für den Lions Club Bitburg-Beda</p>
       </div>`;
   }
@@ -410,7 +432,9 @@
 
     document.querySelectorAll('[data-wkey]').forEach(inp => inp.oninput = () => {
       const idx = parseInt(inp.dataset.idx, 10), key = inp.dataset.wkey;
-      if (key === 'bottlePrice' || key === 'glassPrice') state.menu.wines[idx][key] = parseFloat((inp.value || '').replace(',', '.')) || 0;
+      if (key === 'bottlePrice') state.menu.wines[idx][key] = inp.value.trim() === '' ? null : (parseFloat(inp.value.replace(',', '.')) || 0);
+      else if (key === 'glassPrice') state.menu.wines[idx][key] = parseFloat((inp.value || '').replace(',', '.')) || 0;
+      else if (key === 'nr') state.menu.wines[idx].nr = inp.value.trim() === '' ? null : (parseInt(inp.value, 10) || 0);
       else state.menu.wines[idx][key] = inp.value;
       saveMenu();
     });
@@ -420,11 +444,19 @@
       else state.menu.nonAlcoholic[idx][key] = inp.value;
       saveMenu();
     });
+    document.querySelectorAll('[data-nadep]').forEach(cb => cb.onchange = () => {
+      state.menu.nonAlcoholic[parseInt(cb.dataset.nadep, 10)].deposit = cb.checked; saveMenu();
+    });
     document.querySelectorAll('[data-del-w]').forEach(b => b.onclick = () => { state.menu.wines.splice(parseInt(b.dataset.delW, 10), 1); saveMenu(); render(); });
     document.querySelectorAll('[data-del-na]').forEach(b => b.onclick = () => { state.menu.nonAlcoholic.splice(parseInt(b.dataset.delNa, 10), 1); saveMenu(); render(); });
     const addW = document.getElementById('tk-add-wine'); if (addW) addW.onclick = () => { state.menu.wines.push({ id: 'w' + Date.now(), name: '', type: '', bottlePrice: 0, glassPrice: 0 }); saveMenu(); render(); };
     const addN = document.getElementById('tk-add-na'); if (addN) addN.onclick = () => { state.menu.nonAlcoholic.push({ id: 'n' + Date.now(), name: '', type: '', price: 0 }); saveMenu(); render(); };
     const dep = document.getElementById('tk-dep-price'); if (dep) dep.oninput = () => { state.menu.depositPrice = parseFloat((dep.value || '').replace(',', '.')) || 0; saveMenu(); };
+    const reset = document.getElementById('tk-reset-menu'); if (reset) reset.onclick = () => {
+      if (confirm('Karte auf den Standard zurücksetzen? Alle lokalen Änderungen gehen verloren.')) {
+        state.menu = JSON.parse(JSON.stringify(DEFAULT_MENU)); saveMenu(); render();
+      }
+    };
   }
   render();
 
