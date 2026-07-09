@@ -81,6 +81,14 @@
   .tk-sum-neg { color: var(--danger-text); }
   .tk-sum-auto { color: var(--text-2); font-style: italic; }
   .tk-sum-divider { border-top: 0.5px solid var(--border); margin: 4px 0; }
+  .tk-pay-cat { font-size: 10px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-2); margin: 8px 0 2px; }
+  .tk-pay-cat:first-child { margin-top: 0; }
+  .tk-sum-item { align-items: flex-start; gap: 8px; }
+  .tk-sum-line.tk-sum-item .tk-sum-qty { flex: 0 0 auto; text-align: right; color: var(--text); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tk-sum-item .tk-sum-name { flex: 1 1 auto; min-width: 0; }
+  .tk-sum-item .tk-sum-price { flex: 0 0 auto; white-space: nowrap; }
+  .tk-sum-item .tk-badge-sm { margin-top: 1px; }
+  .tk-sum-ph { flex: 0 0 18px; }
 
   .tk-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
   .tk-storno { padding: 14px; border-radius: var(--radius); background: var(--surface); color: var(--danger-text); border: 0.5px solid var(--danger-border); font-size: 14px; font-weight: 500; cursor: pointer; }
@@ -276,9 +284,9 @@
       }).join('');
     }
     const lines = [];
-    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) lines.push({ label: `${qty}× ${it.name} ${it.type}`.trim(), val: it.price * qty, nr: it.nr }); });
+    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) lines.push({ qty, name: `${it.name} ${it.type}`.trim(), val: it.price * qty, nr: it.nr }); });
     const autoGlass = autoGlassCount();
-    const summaryLines = lines.map(l => `<div class="tk-sum-line"><span>${l.nr != null ? `<span class="tk-badge tk-badge-sm">${l.nr}</span> ` : ''}${l.label}</span><span>${fmt(l.val)}</span></div>`).join('');
+    const summaryLines = lines.map(l => `<div class="tk-sum-line tk-sum-item"><span class="tk-sum-qty">${l.qty}×</span>${l.nr != null ? `<span class="tk-badge tk-badge-sm">${l.nr}</span>` : '<span class="tk-sum-ph"></span>'}<span class="tk-sum-name">${l.name}</span><span class="tk-sum-price">${fmt(l.val)}</span></div>`).join('');
     let pfandLines = '';
     if (autoGlass > 0) pfandLines += `<div class="tk-sum-line tk-sum-auto"><span>${autoGlass}× Glaspfand (auto)</span><span>${fmt(autoGlass * state.menu.depositPrice)}</span></div>`;
     if (state.extraDepositOut > 0) pfandLines += `<div class="tk-sum-line"><span>${state.extraDepositOut}× Extra Glas</span><span>${fmt(state.extraDepositOut * state.menu.depositPrice)}</span></div>`;
@@ -343,11 +351,25 @@
       <div class="tk-footer">
         <p class="tk-footer-title">LöwenKasse · Version 2.0</p>
         <p class="tk-footer-sub">Für den Lions Club Bitburg-Beda</p>
+        <p class="tk-footer-sub">© 2026 Jochen Müller</p>
       </div>`;
   }
 
   function renderPayment() {
     const total = state.lastTotal;
+    const outItems = [];
+    Object.entries(state.order).forEach(([id, qty]) => { const it = resolve(id); if (it) outItems.push({ qty, nr: it.nr, name: it.name }); });
+    if (state.extraDepositOut > 0) outItems.push({ qty: state.extraDepositOut, nr: null, name: 'Extra Glas' });
+    const inItems = [];
+    if (state.depositIn > 0) inItems.push({ qty: state.depositIn, nr: null, name: 'Glas (Pfand zurück)' });
+    const payLine = (l) => `<div class="tk-sum-line tk-sum-item"><span class="tk-sum-qty">${l.qty}×</span>${l.nr != null ? `<span class="tk-badge tk-badge-sm">${l.nr}</span>` : '<span class="tk-sum-ph"></span>'}<span class="tk-sum-name">${l.name}</span></div>`;
+    let payItemsHtml = '';
+    if (outItems.length || inItems.length) {
+      let inner = '';
+      if (outItems.length) inner += `<div class="tk-pay-cat">Ausgabe</div>` + outItems.map(payLine).join('');
+      if (inItems.length) inner += `<div class="tk-pay-cat">Rücknahme</div>` + inItems.map(payLine).join('');
+      payItemsHtml = `<div class="tk-summary">${inner}</div>`;
+    }
     const givenNum = parseFloat((state.given || '').replace(',', '.')) || 0;
     const change = givenNum - total;
     const showChange = state.changeShown;
@@ -373,6 +395,7 @@
         <p class="tk-amount-l">ZU ZAHLEN</p>
         <p class="tk-amount-v">${fmt(total)}</p>
       </div>
+      ${payItemsHtml}
       <div class="tk-pay-input-wrap">
         <label>Gegeben</label>
         <input class="tk-pay-input" id="tk-given" type="text" inputmode="decimal" value="${state.given}" placeholder="0,00" />

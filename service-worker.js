@@ -2,7 +2,7 @@
 // Sorgt dafür, dass die App auch ohne Internet funktioniert.
 // Bei jedem neuen Deploy die Versions-Nummer hochzählen, damit alle Geräte
 // die neue Version laden.
-const CACHE_NAME = 'loewenkasse-v4';
+const CACHE_NAME = 'loewenkasse-v5';
 const ASSETS = [
   './',
   './index.html',
